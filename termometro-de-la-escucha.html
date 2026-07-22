@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Termómetro de la escucha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF8F2;
+    --card:#FEFCF8;
+    --ink:#28241F;
+    --ink-soft:#6E655A;
+    --line:#EAE1D3;
+    --line-strong:#DBCFBC;
+    --accent:#4A3F6B;        /* índigo/ciruela: estructura, foco, selección */
+    --accent-soft:#EDE9F2;
+    --cold:#3E7CA6;
+    --cool:#5FA79C;
+    --warm:#E3A046;
+    --hot:#D96B5A;
+    --shadow:0 1px 2px rgba(40,36,31,.04), 0 8px 30px rgba(40,36,31,.06);
+    --r:16px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 85% -10%, #F4EEE2 0%, transparent 60%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Instrument Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-size:16px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:clamp(20px,4vw,48px) clamp(16px,4vw,40px) 80px;}
+
+  /* ---------- Header ---------- */
+  header.masthead{margin-bottom:28px;}
+  .eyebrow{
+    font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent); font-weight:600; margin:0 0 12px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:""; width:26px; height:1.5px; background:var(--accent); display:inline-block; opacity:.55;}
+  h1{
+    font-family:'Fraunces', Georgia, serif;
+    font-weight:500; font-size:clamp(2.1rem,5.4vw,3.4rem);
+    line-height:1.02; letter-spacing:-.015em; margin:0 0 16px;
+  }
+  h1 em{font-style:italic; color:var(--hot);}
+  .lede{max-width:60ch; color:var(--ink-soft); font-size:clamp(1rem,1.6vw,1.12rem); margin:0 0 6px;}
+  .lede strong{color:var(--ink); font-weight:600;}
+  .howto{max-width:60ch; color:var(--ink-soft); font-size:.95rem; margin:14px 0 0;}
+
+  /* ---------- Layout ---------- */
+  .layout{display:grid; grid-template-columns:290px 1fr; gap:clamp(24px,4vw,52px); align-items:start; margin-top:34px;}
+
+  /* ---------- Thermometer panel ---------- */
+  .therm-panel{position:sticky; top:24px;}
+  .therm-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+    box-shadow:var(--shadow); padding:22px 18px 24px; text-align:center;
+  }
+  .therm-card .cap{font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--ink-soft); font-weight:600; margin:0 0 6px;}
+  svg.thermo{width:118px; height:290px; display:block; margin:2px auto 6px;}
+  .reading-num{font-family:'Fraunces',Georgia,serif; font-size:2.5rem; line-height:1; font-weight:500; letter-spacing:-.02em;}
+  .reading-num .den{font-size:1.05rem; color:var(--ink-soft); font-weight:400;}
+  .reading-zone{font-weight:600; font-size:1.02rem; margin-top:4px; min-height:1.3em;}
+  .reading-count{font-size:.82rem; color:var(--ink-soft); margin-top:8px;}
+  .reading-empty{color:var(--ink-soft); font-family:'Fraunces',Georgia,serif; font-size:1.15rem; font-style:italic;}
+
+  /* ---------- Mobile mini strip ---------- */
+  .minibar{display:none;}
+
+  /* ---------- Questionnaire ---------- */
+  .block{margin-bottom:38px;}
+  .block-head{display:flex; align-items:baseline; gap:14px; margin:0 0 4px;}
+  .block-num{font-family:'Fraunces',Georgia,serif; font-size:1.1rem; color:var(--accent); font-weight:600; font-variant-numeric:tabular-nums;}
+  .block-title{font-family:'Fraunces',Georgia,serif; font-size:1.55rem; font-weight:500; letter-spacing:-.01em; margin:0;}
+  .block-sub{color:var(--ink-soft); font-size:.95rem; margin:2px 0 18px 0; padding-left:calc(1.1rem + 14px);}
+
+  .dim{margin-bottom:22px;}
+  .dim-name{
+    font-size:12px; letter-spacing:.09em; text-transform:uppercase; font-weight:600;
+    color:var(--accent); margin:0 0 12px; display:flex; align-items:center; gap:9px;
+  }
+  .dim-name::after{content:""; flex:1; height:1px; background:var(--line);}
+
+  .item{border:none; padding:0; margin:0 0 16px;}
+  .item-text{font-size:1.02rem; padding:0; margin:0 0 11px; font-weight:500; display:block;}
+  .item-text .qn{color:var(--ink-soft); font-weight:600; font-variant-numeric:tabular-nums; margin-right:7px;}
+
+  .scale{display:grid; grid-template-columns:repeat(5,1fr); gap:7px;}
+  .opt{position:relative;}
+  .opt input{position:absolute; opacity:0; width:1px; height:1px; pointer-events:none;}
+  .opt span{
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    min-height:52px; padding:6px 4px; border:1.5px solid var(--line-strong); border-radius:11px;
+    font-size:.82rem; font-weight:500; color:var(--ink-soft); background:#fff;
+    cursor:pointer; transition:border-color .15s, background .15s, color .15s, transform .08s; line-height:1.15;
+  }
+  .opt span:hover{border-color:var(--accent); color:var(--ink);}
+  .opt input:checked + span{
+    background:var(--accent); border-color:var(--accent); color:#fff;
+    box-shadow:0 4px 14px rgba(74,63,107,.28);
+  }
+  .opt input:focus-visible + span{outline:3px solid var(--accent-soft); outline-offset:2px; border-color:var(--accent);}
+  .opt span:active{transform:translateY(1px);}
+
+  /* ---------- Reveal button ---------- */
+  .reveal-wrap{margin:30px 0 8px;}
+  .btn{
+    font-family:'Instrument Sans',sans-serif; font-size:1rem; font-weight:600;
+    padding:15px 26px; border-radius:13px; border:1.5px solid var(--accent);
+    background:var(--accent); color:#fff; cursor:pointer; transition:transform .1s, box-shadow .15s, opacity .15s;
+    box-shadow:0 6px 20px rgba(74,63,107,.22);
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:active{transform:translateY(0);}
+  .btn:disabled{background:#EFEAE0; border-color:var(--line-strong); color:var(--ink-soft); cursor:not-allowed; box-shadow:none; transform:none;}
+  .btn-ghost{background:transparent; color:var(--accent); box-shadow:none;}
+  .btn-ghost:hover{background:var(--accent-soft);}
+
+  /* ---------- Results ---------- */
+  .results{display:none; margin-top:14px;}
+  .results.show{display:block; animation:rise .5s ease both;}
+  @keyframes rise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+
+  .verdict{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+    box-shadow:var(--shadow); padding:26px clamp(18px,3vw,30px); margin-bottom:22px;
+    border-top:5px solid var(--zonecolor,var(--warm));
+  }
+  .verdict .z-label{font-size:12px; letter-spacing:.15em; text-transform:uppercase; font-weight:600; color:var(--ink-soft); margin:0 0 6px;}
+  .verdict h2{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:clamp(1.6rem,3.4vw,2.1rem); margin:0 0 14px; letter-spacing:-.01em; color:var(--zonecolor,var(--ink));}
+  .verdict p{margin:0 0 12px; color:var(--ink); max-width:64ch;}
+  .verdict p:last-child{margin-bottom:0;}
+  .callout{
+    background:var(--accent-soft); border-radius:12px; padding:16px 18px; margin-top:18px;
+  }
+  .callout .k{font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:600; color:var(--accent); margin:0 0 5px;}
+  .callout .q{font-family:'Fraunces',Georgia,serif; font-size:1.2rem; font-style:italic; margin:0; color:var(--ink);}
+  .callout .cold-dim{font-weight:600; font-style:normal;}
+
+  .breakdown{background:var(--card); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:24px clamp(18px,3vw,30px);}
+  .breakdown h3{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:1.35rem; margin:0 0 4px;}
+  .breakdown .sub{color:var(--ink-soft); font-size:.92rem; margin:0 0 20px;}
+  .bd-group{margin-bottom:18px;}
+  .bd-group > .g-title{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600; margin:0 0 12px;}
+  .bar-row{display:grid; grid-template-columns:1fr auto; gap:6px 12px; align-items:center; margin-bottom:14px;}
+  .bar-label{font-size:.92rem; font-weight:500;}
+  .bar-val{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:1rem; font-variant-numeric:tabular-nums; color:var(--ink-soft);}
+  .bar-track{grid-column:1 / -1; height:9px; background:#F0EADF; border-radius:6px; overflow:hidden;}
+  .bar-fill{height:100%; width:0; border-radius:6px; transition:width .7s cubic-bezier(.2,.7,.2,1);}
+
+  .disclaimer{color:var(--ink-soft); font-size:.9rem; margin:20px 0 0; max-width:64ch;}
+  .actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:24px;}
+
+  footer.foot{margin-top:46px; padding-top:18px; border-top:1px solid var(--line); color:var(--ink-soft); font-size:.82rem;}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:880px){
+    .layout{grid-template-columns:1fr; gap:8px;}
+    .therm-panel{position:static; order:-1;}
+    .therm-card svg.thermo{display:none;}
+    .therm-card{padding:0; border:none; box-shadow:none; background:transparent; text-align:left;}
+    .therm-card .cap, .therm-card .reading-num, .therm-card .reading-zone, .therm-card .reading-count{display:none;}
+    .minibar{
+      display:block; position:sticky; top:0; z-index:20; margin:0 -16px 22px; padding:12px 16px;
+      background:rgba(251,248,242,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+    }
+    .minibar .row{display:flex; align-items:center; gap:12px;}
+    .mb-num{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:1.35rem; line-height:1; min-width:52px;}
+    .mb-num .den{font-size:.75rem; color:var(--ink-soft); font-weight:400;}
+    .mb-zone{font-weight:600; font-size:.9rem; flex:1;}
+    .mb-count{font-size:.78rem; color:var(--ink-soft); white-space:nowrap;}
+    .mb-track{height:7px; background:#EDE6DA; border-radius:5px; overflow:hidden; margin-top:9px;}
+    .mb-fill{height:100%; width:0; border-radius:5px; transition:width .5s ease, background .3s;}
+  }
+  @media (max-width:460px){
+    .scale{grid-template-columns:repeat(5,1fr); gap:5px;}
+    .opt span{min-height:60px; font-size:.72rem; padding:5px 2px; border-radius:9px;}
+    .block-sub{padding-left:0;}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+  }
+
+  /* ---------- Print ---------- */
+  @media print{
+    body{background:#fff;}
+    .therm-panel, .minibar, .reveal-wrap, .howto, .actions, footer.foot{display:none !important;}
+    .layout{display:block;}
+    .block{display:none;}
+    .results{display:block !important;}
+    .verdict, .breakdown{box-shadow:none; border:1px solid #ccc; break-inside:avoid;}
+    .wrap{padding:0;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Autoevaluación · Comunicación interna</p>
+    <h1>Termómetro de la <em>escucha</em></h1>
+    <p class="lede"><strong>Un espejo, no un examen.</strong> Responde según cómo es tu escucha estos días: contigo, con cada persona y en tu comunidad. No hay respuestas buenas ni malas; solo una temperatura desde la que crecer.</p>
+    <p class="howto">Marca en cada frase con qué frecuencia te ocurre. El termómetro se moverá contigo. Cuando respondas las 18, pulsa «Ver mi lectura».</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- Termómetro -->
+    <aside class="therm-panel">
+      <div class="minibar" aria-hidden="true">
+        <div class="row">
+          <div class="mb-num" id="mbNum">—<span class="den"></span></div>
+          <div class="mb-zone" id="mbZone">Sin respuestas todavía</div>
+          <div class="mb-count" id="mbCount">0 / 18</div>
+        </div>
+        <div class="mb-track"><div class="mb-fill" id="mbFill"></div></div>
+      </div>
+
+      <div class="therm-card">
+        <p class="cap">Tu lectura</p>
+        <svg class="thermo" viewBox="0 0 120 300" role="img" aria-labelledby="thTitle">
+          <title id="thTitle">Termómetro de la escucha</title>
+          <defs>
+            <linearGradient id="merc" gradientUnits="userSpaceOnUse" x1="60" y1="262" x2="60" y2="34">
+              <stop offset="0"    stop-color="#3E7CA6"/>
+              <stop offset="0.38" stop-color="#5FA79C"/>
+              <stop offset="0.68" stop-color="#E3A046"/>
+              <stop offset="1"    stop-color="#D96B5A"/>
+            </linearGradient>
+          </defs>
+          <!-- track -->
+          <rect x="51" y="30" width="18" height="224" rx="9" fill="#F0EADF"/>
+          <circle cx="60" cy="262" r="25" fill="#F0EADF"/>
+          <!-- mercury bulb (siempre) -->
+          <circle cx="60" cy="262" r="21" fill="url(#merc)"/>
+          <!-- mercury column -->
+          <rect id="mercRect" x="54" y="250" width="12" height="0" rx="6" fill="url(#merc)"/>
+          <!-- outline -->
+          <rect x="51" y="30" width="18" height="224" rx="9" fill="none" stroke="#DBCFBC" stroke-width="1.4"/>
+          <circle cx="60" cy="262" r="25" fill="none" stroke="#DBCFBC" stroke-width="1.4"/>
+          <!-- zonas -->
+          <g font-family="Instrument Sans, sans-serif" font-size="9.5" fill="#8A8175" font-weight="500">
+            <line x1="71" y1="181" x2="76" y2="181" stroke="#DBCFBC" stroke-width="1"/>
+            <line x1="71" y1="147" x2="76" y2="147" stroke="#DBCFBC" stroke-width="1"/>
+            <line x1="71" y1="105" x2="76" y2="105" stroke="#DBCFBC" stroke-width="1"/>
+            <text x="79" y="217">Helada</text>
+            <text x="79" y="167">Tibia</text>
+            <text x="79" y="128">Cálida</text>
+            <text x="79" y="80">Plena</text>
+          </g>
+        </svg>
+        <div class="reading-num" id="rNum"><span class="reading-empty">Aún sin lectura</span></div>
+        <div class="reading-zone" id="rZone"></div>
+        <div class="reading-count" id="rCount">0 de 18 respondidas</div>
+      </div>
+    </aside>
+
+    <!-- Cuestionario -->
+    <main>
+      <div id="quiz"></div>
+
+      <div class="reveal-wrap">
+        <button class="btn" id="revealBtn" disabled>Responde las 18 frases</button>
+      </div>
+
+      <section class="results" id="results" aria-live="polite">
+        <div class="verdict" id="verdict">
+          <p class="z-label">Tu temperatura de escucha</p>
+          <h2 id="vTitle"></h2>
+          <div id="vBody"></div>
+          <div class="callout">
+            <p class="k">Tu punto más frío</p>
+            <p class="q"><span class="cold-dim" id="coldDim"></span> — <span id="coldQ"></span></p>
+          </div>
+        </div>
+
+        <div class="breakdown">
+          <h3>Dónde estás más cálida, dónde más fría</h3>
+          <p class="sub">Cada dimensión, del 1 (casi nunca) al 5 (casi siempre).</p>
+          <div id="bdBlocks"></div>
+          <p class="disclaimer">Esta lectura refleja tu percepción de hoy. Su valor no está en la nota, sino en la conversación que abre —contigo y con tu comunidad—.</p>
+          <div class="actions">
+            <button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+            <button class="btn btn-ghost" id="resetBtn">Empezar de nuevo</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="foot">Termómetro de la escucha · Instrumento de autoevaluación para formación en comunicación interna.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SCALE = ["Casi nunca","Rara vez","A veces","A menudo","Casi siempre"];
+
+  var DIMS = [
+    {n:"Presencia y atención plena",            bloque:0, q:"¿A qué le doy mi atención cuando alguien me habla?"},
+    {n:"Empatía y acogida",                     bloque:0, q:"¿Escucho las palabras, o también lo que hay debajo de ellas?"},
+    {n:"Apertura y no-juicio",                  bloque:0, q:"¿Estoy dispuesta a que lo que escucho me cambie?"},
+    {n:"Voces diversas y participación",        bloque:1, q:"¿Quién no está hablando en nuestras reuniones, y por qué?"},
+    {n:"Escucha y discernimiento comunes",      bloque:1, q:"¿Escuchamos para caminar juntas, o para imponer?"},
+    {n:"De la escucha a la acción",             bloque:1, q:"¿Qué hacemos con lo que las personas nos confían?"}
+  ];
+
+  var BLOCKS = [
+    {num:"I", title:"Mi escucha",      sub:"Cómo escucho a las personas, una a una."},
+    {num:"II", title:"Nuestra escucha", sub:"Cómo escuchamos como comunidad."}
+  ];
+
+  var ITEMS = [
+    {dim:0, t:"Cuando alguien me habla, dejo lo que estoy haciendo (móvil, tareas) y le doy toda mi atención."},
+    {dim:0, t:"Mantengo el contacto visual y una postura que muestra que estoy presente."},
+    {dim:0, t:"Escucho hasta el final, sin ir preparando mi respuesta mientras la otra persona habla."},
+    {dim:1, t:"Presto atención no solo a las palabras, sino a los sentimientos y a lo que no se dice."},
+    {dim:1, t:"Devuelvo con mis palabras lo que he entendido, para asegurarme de haber captado bien."},
+    {dim:1, t:"Acojo lo que me comparten sin minimizarlo ni saltar enseguida a dar soluciones."},
+    {dim:2, t:"Escucho con apertura a quienes piensan distinto de mí, sin descalificar de antemano."},
+    {dim:2, t:"Reconozco mis prejuicios y trato de suspenderlos mientras escucho."},
+    {dim:2, t:"Me dejo cuestionar, y a veces cambiar de opinión, por lo que escucho."},
+    {dim:3, t:"En nuestras reuniones procuro que hablen también las personas más calladas o nuevas."},
+    {dim:3, t:"Buscamos activamente las voces que suelen faltar: las ausentes, las de las periferias."},
+    {dim:3, t:"El tiempo de palabra se reparte de forma equilibrada, sin que unas pocas voces lo ocupen todo."},
+    {dim:4, t:"En comunidad sabemos guardar silencio para escuchar juntas antes de decidir."},
+    {dim:4, t:"Escuchamos buscando lo que de verdad se nos pide, no solo imponer la propia idea."},
+    {dim:4, t:"Cuando hay desacuerdo, lo acogemos como parte del camino y no como una amenaza."},
+    {dim:5, t:"Lo que se escucha se recoge y se tiene en cuenta en las decisiones."},
+    {dim:5, t:"Damos retorno: quien comparte algo sabe después qué ocurrió con su aportación."},
+    {dim:5, t:"Hay un clima de confianza en el que las personas se atreven a decir lo que piensan."}
+  ];
+
+  var ZONES = [
+    {key:"helada", name:"Escucha helada", color:"var(--cold)", hex:"#3E7CA6",
+     body:["La escucha está pidiendo espacio. Quizá las prisas, las tareas o el ruido interior estén ocupando el lugar del otro. No es un reproche, es una invitación honesta.",
+           "Empieza por lo pequeño y concreto: una sola conversación al día en la que solo escuches —sin resolver, sin responder, sin mirar el reloj—. Ahí ya empieza a subir la temperatura."]},
+    {key:"tibia", name:"Escucha tibia", color:"var(--cool)", hex:"#5FA79C",
+     body:["Hay escucha, pero intermitente: escuchas cuando puedes, y a veces el ruido —tuyo o de la comunidad— se impone. Es un buen punto de partida.",
+           "El siguiente paso es hacer la escucha intencional: decidir de antemano callar, mirar y quedarte hasta el final, aunque creas que ya sabes lo que van a decir."]},
+    {key:"calida", name:"Escucha cálida", color:"var(--warm)", hex:"#E3A046",
+     body:["Se nota una escucha cuidada y acogedora. Las personas se sienten recibidas contigo y en tu comunidad; eso ya es un don.",
+           "Tu crecimiento está ahora en los matices: las voces más calladas, las que faltan, y en cerrar el círculo para que escuchar se convierta de verdad en decisiones."]},
+    {key:"plena", name:"Escucha ardiente", color:"var(--hot)", hex:"#D96B5A",
+     body:["Tu escucha —y la de tu comunidad— es un lugar donde el otro puede habitar. Escuchas a la persona, a lo no dicho y a lo que se os pide juntas.",
+           "El reto ya no es subir más, sino sostener esta temperatura y contagiarla: acompañar a otras a escuchar así, sin darlo por descontado."]}
+  ];
+
+  // avg (1..5) -> zona
+  function zoneOf(avg){
+    if(avg < 2.5) return 0;
+    if(avg < 3.5) return 1;
+    if(avg < 4.3) return 2;
+    return 3;
+  }
+  function esNum(x){ return x.toFixed(1).replace('.',','); }
+  function fillFrac(avg){ // 1..5 -> 0..1 para altura del mercurio
+    var f = (avg - 1) / 4;
+    return f < 0 ? 0 : (f > 1 ? 1 : f);
+  }
+
+  var answers = new Array(ITEMS.length).fill(null);
+
+  // ----- construir cuestionario -----
+  var quiz = document.getElementById('quiz');
+  BLOCKS.forEach(function(bl, bIdx){
+    var block = document.createElement('section');
+    block.className = 'block';
+    block.innerHTML =
+      '<div class="block-head"><span class="block-num">'+bl.num+'</span>'+
+      '<h2 class="block-title">'+bl.title+'</h2></div>'+
+      '<p class="block-sub">'+bl.sub+'</p>';
+
+    DIMS.forEach(function(dim, dIdx){
+      if(dim.bloque !== bIdx) return;
+      var dimEl = document.createElement('div');
+      dimEl.className = 'dim';
+      dimEl.innerHTML = '<p class="dim-name">'+dim.n+'</p>';
+
+      ITEMS.forEach(function(it, iIdx){
+        if(it.dim !== dIdx) return;
+        var fs = document.createElement('fieldset');
+        fs.className = 'item';
+        var legend = '<legend class="item-text"><span class="qn">'+(iIdx+1)+'.</span>'+it.t+'</legend>';
+        var scale = '<div class="scale" role="radiogroup" aria-label="'+it.t+'">';
+        for(var v=1; v<=5; v++){
+          scale +=
+            '<label class="opt"><input type="radio" name="q'+iIdx+'" value="'+v+'">'+
+            '<span>'+SCALE[v-1]+'</span></label>';
+        }
+        scale += '</div>';
+        fs.innerHTML = legend + scale;
+        dimEl.appendChild(fs);
+      });
+      block.appendChild(dimEl);
+    });
+    quiz.appendChild(block);
+  });
+
+  // ----- listeners -----
+  quiz.addEventListener('change', function(e){
+    if(e.target && e.target.name && e.target.name.indexOf('q')===0){
+      var idx = parseInt(e.target.name.slice(1),10);
+      answers[idx] = parseInt(e.target.value,10);
+      render();
+    }
+  });
+
+  // ----- render en vivo -----
+  var mercRect = document.getElementById('mercRect');
+  var rNum = document.getElementById('rNum'), rZone = document.getElementById('rZone'), rCount = document.getElementById('rCount');
+  var mbNum = document.getElementById('mbNum'), mbZone = document.getElementById('mbZone'), mbCount = document.getElementById('mbCount'), mbFill = document.getElementById('mbFill');
+  var revealBtn = document.getElementById('revealBtn');
+
+  var TUBE_BOTTOM = 250, TUBE_H = 216; // coord SVG
+
+  function currentAvg(){
+    var sum=0, n=0;
+    for(var i=0;i<answers.length;i++){ if(answers[i]!==null){ sum+=answers[i]; n++; } }
+    return n===0 ? null : sum/n;
+  }
+  function answeredCount(){
+    var n=0; for(var i=0;i<answers.length;i++){ if(answers[i]!==null) n++; } return n;
+  }
+
+  function render(){
+    var n = answeredCount();
+    var avg = currentAvg();
+
+    // mercurio
+    var f = (avg===null) ? 0 : fillFrac(avg);
+    var h = Math.round(f * TUBE_H);
+    mercRect.setAttribute('y', TUBE_BOTTOM - h);
+    mercRect.setAttribute('height', h);
+
+    // panel lateral
+    if(avg===null){
+      rNum.innerHTML = '<span class="reading-empty">Aún sin lectura</span>';
+      rZone.textContent = '';
+      rZone.style.color = '';
+    } else {
+      var z = ZONES[zoneOf(avg)];
+      rNum.innerHTML = esNum(avg)+'<span class="den"> / 5</span>';
+      rZone.textContent = z.name;
+      rZone.style.color = z.hex;
+    }
+    rCount.textContent = n + ' de 18 respondidas';
+
+    // mini strip (móvil)
+    if(avg===null){
+      mbNum.innerHTML = '—<span class="den"></span>';
+      mbZone.textContent = 'Sin respuestas todavía';
+      mbZone.style.color = '';
+      mbFill.style.width = '0%';
+    } else {
+      var z2 = ZONES[zoneOf(avg)];
+      mbNum.innerHTML = esNum(avg)+'<span class="den"> /5</span>';
+      mbZone.textContent = z2.name;
+      mbZone.style.color = z2.hex;
+      mbFill.style.width = Math.round(f*100)+'%';
+      mbFill.style.background = z2.hex;
+    }
+    mbCount.textContent = n + ' / 18';
+
+    // botón
+    if(n===18){
+      revealBtn.disabled = false;
+      revealBtn.textContent = 'Ver mi lectura';
+    } else {
+      revealBtn.disabled = true;
+      revealBtn.textContent = 'Te faltan ' + (18-n) + ' de 18';
+    }
+  }
+
+  // ----- resultados -----
+  var results = document.getElementById('results');
+  var verdict = document.getElementById('verdict');
+
+  function dimAvg(d){
+    var sum=0,c=0;
+    for(var i=0;i<ITEMS.length;i++){ if(ITEMS[i].dim===d){ sum+=answers[i]; c++; } }
+    return sum/c;
+  }
+
+  function reveal(){
+    if(answeredCount()!==18) return;
+    var avg = currentAvg();
+    var zi = zoneOf(avg);
+    var z = ZONES[zi];
+
+    verdict.style.setProperty('--zonecolor', z.hex);
+    document.getElementById('vTitle').textContent = z.name + ' · ' + esNum(avg) + ' / 5';
+    var vb = document.getElementById('vBody');
+    vb.innerHTML = z.body.map(function(p){ return '<p>'+p+'</p>'; }).join('');
+
+    // punto más frío
+    var coldIdx=0, coldVal=99;
+    for(var d=0; d<DIMS.length; d++){
+      var a = dimAvg(d);
+      if(a < coldVal){ coldVal=a; coldIdx=d; }
+    }
+    document.getElementById('coldDim').textContent = DIMS[coldIdx].n;
+    document.getElementById('coldQ').textContent = DIMS[coldIdx].q;
+
+    // desglose por dimensión
+    var host = document.getElementById('bdBlocks');
+    host.innerHTML = '';
+    BLOCKS.forEach(function(bl, bIdx){
+      var g = document.createElement('div');
+      g.className = 'bd-group';
+      g.innerHTML = '<p class="g-title">'+bl.title+'</p>';
+      DIMS.forEach(function(dim, dIdx){
+        if(dim.bloque!==bIdx) return;
+        var a = dimAvg(dIdx);
+        var zc = ZONES[zoneOf(a)].hex;
+        var row = document.createElement('div');
+        row.className = 'bar-row';
+        row.innerHTML =
+          '<span class="bar-label">'+dim.n+'</span>'+
+          '<span class="bar-val">'+esNum(a)+'</span>'+
+          '<div class="bar-track"><div class="bar-fill"></div></div>';
+        g.appendChild(row);
+        var fillEl = row.querySelector('.bar-fill');
+        fillEl.style.background = zc;
+        (function(el,pct){ setTimeout(function(){ el.style.width = pct+'%'; }, 60); })(fillEl, Math.round(fillFrac(a)*100));
+      });
+      host.appendChild(g);
+    });
+
+    results.classList.add('show');
+    document.body.classList.add('has-results');
+    setTimeout(function(){ verdict.scrollIntoView({behavior:'smooth', block:'start'}); }, 80);
+  }
+
+  revealBtn.addEventListener('click', reveal);
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    answers = new Array(ITEMS.length).fill(null);
+    var inputs = quiz.querySelectorAll('input[type=radio]');
+    for(var i=0;i<inputs.length;i++){ inputs[i].checked = false; }
+    results.classList.remove('show');
+    document.body.classList.remove('has-results');
+    render();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
