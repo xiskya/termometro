@@ -158,6 +158,13 @@
   .bar-fill{height:100%; width:0; border-radius:6px; transition:width .7s cubic-bezier(.2,.7,.2,1);}
 
   .disclaimer{color:var(--ink-soft); font-size:.9rem; margin:20px 0 0; max-width:64ch;}
+  .contrast{background:var(--card); border:1px solid var(--line); border-left:5px solid var(--hot); border-radius:var(--r); box-shadow:var(--shadow); padding:24px clamp(18px,3vw,30px); margin-top:22px;}
+  .contrast .k{font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; color:var(--hot); margin:0 0 8px;}
+  .contrast h3{font-family:'Fraunces',Georgia,serif; font-weight:500; font-size:1.35rem; margin:0 0 12px;}
+  .contrast p{margin:0 0 12px; max-width:64ch;}
+  .contrast .ask{background:var(--accent-soft); border-radius:12px; padding:16px 18px; margin:14px 0 12px;}
+  .contrast .ask .q{font-family:'Fraunces',Georgia,serif; font-style:italic; font-size:1.2rem; margin:0; color:var(--ink);}
+  .contrast .last{margin-bottom:0; color:var(--ink-soft); font-size:.93rem;}
   .actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:24px;}
 
   footer.foot{margin-top:46px; padding-top:18px; border-top:1px solid var(--line); color:var(--ink-soft); font-size:.82rem;}
@@ -210,7 +217,7 @@
     <p class="eyebrow">Autoevaluación · Comunicación interna</p>
     <h1>Termómetro de la <em>escucha</em></h1>
     <p class="lede"><strong>Un espejo, no un examen.</strong> Responde según cómo es tu escucha estos días: contigo, con cada persona y en tu comunidad. No hay respuestas buenas ni malas; solo una temperatura desde la que crecer.</p>
-    <p class="howto">Marca en cada frase con qué frecuencia te ocurre. El termómetro se moverá contigo. Cuando respondas las 18, pulsa «Ver mi lectura».</p>
+    <p class="howto">Cada frase te pide recordar algo <strong>concreto y reciente</strong>, no valorarte en general: es más fácil ser honesta con los hechos que con la propia imagen. Algunas frases están en negativo, así que léelas con calma. Cuando respondas las 18, pulsa «Ver mi lectura».</p>
   </header>
 
   <div class="layout">
@@ -289,10 +296,21 @@
           <p class="sub">Cada dimensión, del 1 (casi nunca) al 5 (casi siempre).</p>
           <div id="bdBlocks"></div>
           <p class="disclaimer">Esta lectura refleja tu percepción de hoy. Su valor no está en la nota, sino en la conversación que abre —contigo y con tu comunidad—.</p>
-          <div class="actions">
-            <button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button>
-            <button class="btn btn-ghost" id="resetBtn">Empezar de nuevo</button>
-          </div>
+        </div>
+
+        <div class="contrast">
+          <p class="k">El paso que de verdad importa</p>
+          <h3>Contrasta tu lectura</h3>
+          <p>Esta nota la has puesto tú. Y en la escucha ocurre algo curioso: quien menos escucha suele puntuarse alto, porque cada una se juzga por su intención y las demás la viven por sus gestos.</p>
+          <p>Así que el termómetro solo está a medias. Falta preguntar:</p>
+          <div class="ask"><p class="q">«¿Te sientes escuchada por mí?»</p></div>
+          <p>Elige a una hermana —mejor si no es con la que más confianza tienes— y hazle la pregunta hoy. Luego escucha su respuesta entera, sin explicarte ni justificarte. Solo «gracias».</p>
+          <p class="last">La distancia entre tu nota y lo que ella te diga enseña más que todo el cuestionario.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+          <button class="btn btn-ghost" id="resetBtn">Empezar de nuevo</button>
         </div>
       </section>
     </main>
@@ -321,25 +339,26 @@
     {num:"II", title:"Nuestra escucha", sub:"Cómo escuchamos como comunidad."}
   ];
 
+  // rev:true -> frase en negativo; se puntúa al revés (6 - respuesta)
   var ITEMS = [
-    {dim:0, t:"Cuando alguien me habla, dejo lo que estoy haciendo (móvil, tareas) y le doy toda mi atención."},
-    {dim:0, t:"Mantengo el contacto visual y una postura que muestra que estoy presente."},
-    {dim:0, t:"Escucho hasta el final, sin ir preparando mi respuesta mientras la otra persona habla."},
-    {dim:1, t:"Presto atención no solo a las palabras, sino a los sentimientos y a lo que no se dice."},
-    {dim:1, t:"Devuelvo con mis palabras lo que he entendido, para asegurarme de haber captado bien."},
-    {dim:1, t:"Acojo lo que me comparten sin minimizarlo ni saltar enseguida a dar soluciones."},
-    {dim:2, t:"Escucho con apertura a quienes piensan distinto de mí, sin descalificar de antemano."},
-    {dim:2, t:"Reconozco mis prejuicios y trato de suspenderlos mientras escucho."},
-    {dim:2, t:"Me dejo cuestionar, y a veces cambiar de opinión, por lo que escucho."},
-    {dim:3, t:"En nuestras reuniones procuro que hablen también las personas más calladas o nuevas."},
-    {dim:3, t:"Buscamos activamente las voces que suelen faltar: las ausentes, las de las periferias."},
-    {dim:3, t:"El tiempo de palabra se reparte de forma equilibrada, sin que unas pocas voces lo ocupen todo."},
-    {dim:4, t:"En comunidad sabemos guardar silencio para escuchar juntas antes de decidir."},
-    {dim:4, t:"Escuchamos buscando lo que de verdad se nos pide, no solo imponer la propia idea."},
-    {dim:4, t:"Cuando hay desacuerdo, lo acogemos como parte del camino y no como una amenaza."},
-    {dim:5, t:"Lo que se escucha se recoge y se tiene en cuenta en las decisiones."},
-    {dim:5, t:"Damos retorno: quien comparte algo sabe después qué ocurrió con su aportación."},
-    {dim:5, t:"Hay un clima de confianza en el que las personas se atreven a decir lo que piensan."}
+    {dim:0, t:"En tus conversaciones de esta semana, dejaste lo que estabas haciendo (móvil, tareas) para atender a quien te hablaba."},
+    {dim:0, t:"Piensa en la última conversación larga que tuviste: mientras la otra hablaba, estabas pensando en otra cosa.", rev:true},
+    {dim:0, t:"En tu última conversación de ayer, escuchaste hasta el final sin ir preparando tu respuesta."},
+    {dim:1, t:"Esta semana, alguien te contó algo y notaste lo que sentía, más allá de lo que decía."},
+    {dim:1, t:"En tus últimas conversaciones, devolviste con tus palabras lo entendido para confirmar que habías captado bien."},
+    {dim:1, t:"La última vez que alguien te contó un problema, saltaste a dar consejo antes de que terminara.", rev:true},
+    {dim:2, t:"Esta semana escuchaste hasta el final a alguien que piensa distinto de ti."},
+    {dim:2, t:"En la última conversación en que no estabas de acuerdo, supiste desde el principio lo que ibas a contestar.", rev:true},
+    {dim:2, t:"En este último mes, algo que escuchaste te hizo cambiar de opinión sobre algo."},
+    {dim:3, t:"En vuestra última reunión, alguna hermana callada o nueva tomó la palabra."},
+    {dim:3, t:"En vuestros últimos encuentros, hubo hermanas que no dijeron nada en toda la reunión.", rev:true},
+    {dim:3, t:"En la última reunión, el tiempo de palabra se repartió sin que unas pocas voces lo ocuparan casi todo."},
+    {dim:4, t:"En la última decisión que tomasteis, hubo un tiempo real de silencio o escucha antes de decidir."},
+    {dim:4, t:"En la última reunión con desacuerdo, la conversación se acabó cerrando en falso o cambiando de tema.", rev:true},
+    {dim:4, t:"En vuestra última decisión importante, alguna aportación de otra cambió algo de lo previsto."},
+    {dim:5, t:"Recuerdas algo concreto que alguien planteó y que acabó reflejado en una decisión."},
+    {dim:5, t:"La última vez que una hermana planteó algo, después supo qué pasó con su aportación."},
+    {dim:5, t:"Esta semana, alguien se calló algo que pensaba por no crear problema (tú misma u otra).", rev:true}
   ];
 
   var ZONES = [
@@ -425,9 +444,15 @@
 
   var TUBE_BOTTOM = 250, TUBE_H = 216; // coord SVG
 
+  // Los ítems marcados rev están redactados en negativo: se invierte su puntuación
+  function score(i){
+    if(answers[i]===null) return null;
+    return ITEMS[i].rev ? (6 - answers[i]) : answers[i];
+  }
+
   function currentAvg(){
     var sum=0, n=0;
-    for(var i=0;i<answers.length;i++){ if(answers[i]!==null){ sum+=answers[i]; n++; } }
+    for(var i=0;i<answers.length;i++){ if(answers[i]!==null){ sum+=score(i); n++; } }
     return n===0 ? null : sum/n;
   }
   function answeredCount(){
@@ -489,7 +514,7 @@
 
   function dimAvg(d){
     var sum=0,c=0;
-    for(var i=0;i<ITEMS.length;i++){ if(ITEMS[i].dim===d){ sum+=answers[i]; c++; } }
+    for(var i=0;i<ITEMS.length;i++){ if(ITEMS[i].dim===d){ sum+=score(i); c++; } }
     return sum/c;
   }
 
